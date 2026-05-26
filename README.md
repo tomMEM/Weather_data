@@ -7,6 +7,14 @@ Local Weather Data
  * obtain Longitude and Latitude values for a given city
  * get a time series of temperature values for a given interval
 
+## Data Source
+
+This project uses the **[Meteostat](https://meteostat.net/)** library to retrieve historical weather data. Meteostat provides access to open weather and climate data from thousands of weather stations worldwide.
+
+- **Library**: [Meteostat Python Library](https://dev.meteostat.net/python/)
+- **Data Coverage**: Global weather stations with historical temperature, precipitation, wind, and other meteorological measurements
+- **License**: Check [Meteostat's terms of use](https://meteostat.net/about/legal) for data attribution requirements
+
 ## Google Drive Access Notice
 
 ⚠️ **This notebook requires Google Drive access.**
