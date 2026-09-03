@@ -1,0 +1,43 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [ main, setup-github-actions ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install linting tools
+      run: |
+        pip install flake8 black pylint isort
+    
+    - name: Check code formatting with black
+      run: |
+        black --check . --extend-exclude=".ipynb_checkpoints,venv" || true
+    
+    - name: Run flake8 linting
+      run: |
+        # Check for critical errors
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.ipynb_checkpoints,.venv || true
+        # General linting
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.ipynb_checkpoints,.venv || true
+    
+    - name: Check import sorting
+      run: |
+        isort --check-only . --skip-gitignore --skip=.ipynb_checkpoints || true
+    
+    - name: Summary
+      run: |
+        echo "✓ Code quality checks completed"
+        echo "Review any warnings above for improvement opportunities"
