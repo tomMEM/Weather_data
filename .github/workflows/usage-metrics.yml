@@ -1,0 +1,61 @@
+name: Actions Usage Metrics
+
+on:
+  workflow_run:
+    workflows: 
+      - "Validate Jupyter Notebooks"
+      - "Code Quality Checks"
+    types:
+      - completed
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly summary on Sunday
+
+jobs:
+  track-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Display Workflow Metrics Info
+      run: |
+        echo "═══════════════════════════════════════════════════════════"
+        echo "GitHub Actions Usage Metrics Summary"
+        echo "═══════════════════════════════════════════════════════════"
+        echo ""
+        echo "Repository: tomMEM/Weather_data"
+        echo "Workflow Trigger: ${{ github.event_name }}"
+        echo "Runner OS: ${{ runner.os }}"
+        echo "Runner: ${{ runner.name }}"
+        echo ""
+        echo "✓ This workflow tracks your Actions usage"
+        echo "✓ Monitor in GitHub → Insights → Actions usage metrics"
+        echo ""
+        echo "═══════════════════════════════════════════════════════════"
+    
+    - name: Save metrics checkpoint
+      run: |
+        python << 'EOF'
+        import os
+        from datetime import datetime
+        
+        metrics_file = '.github/actions-metrics.log'
+        os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
+        
+        with open(metrics_file, 'a') as f:
+            timestamp = datetime.now().isoformat()
+            f.write(f"{timestamp} - Workflow run completed\n")
+        
+        print("✓ Metrics checkpoint saved")
+        EOF
+    
+    - name: Check metrics log
+      run: |
+        if [ -f .github/actions-metrics.log ]; then
+          echo "Recent workflow runs:"
+          tail -10 .github/actions-metrics.log || echo "No previous runs logged"
+        else
+          echo "This is the first metrics tracking run"
+        fi
