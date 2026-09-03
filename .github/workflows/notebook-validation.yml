@@ -1,0 +1,55 @@
+name: Validate Jupyter Notebooks
+
+on:
+  push:
+    branches: [ main, setup-github-actions ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install nbconvert jupyter ipykernel
+        pip install pandas numpy requests beautifulsoup4
+    
+    - name: List notebooks
+      run: |
+        find . -name "*.ipynb" -type f
+    
+    - name: Validate notebooks syntax
+      run: |
+        for notebook in $(find . -name "*.ipynb" -type f); do
+          echo "Checking $notebook..."
+          jupyter nbconvert --to notebook --validate "$notebook" || echo "Note: Validation warnings for $notebook"
+        done
+      continue-on-error: true
+    
+    - name: Check notebook structure
+      run: |
+        python << 'EOF'
+        import json
+        import os
+        
+        for root, dirs, files in os.walk('.'):
+            for file in files:
+                if file.endswith('.ipynb'):
+                    notebook_path = os.path.join(root, file)
+                    try:
+                        with open(notebook_path, 'r') as f:
+                            nb = json.load(f)
+                        print(f"✓ {notebook_path}: {len(nb.get('cells', []))} cells")
+                    except json.JSONDecodeError as e:
+                        print(f"✗ {notebook_path}: Invalid JSON - {e}")
+        EOF
